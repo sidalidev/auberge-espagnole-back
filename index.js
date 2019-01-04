@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
+const expressjwt = require('express-jwt');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,10 @@ const USERS = [
 // middlewares
 app.use(cors()); // in order to allow cors
 app.use(bodyParser.json()); // in order to parse req bodies
+
+const jwtCheck = expressjwt({
+  secret: 'supersecretkey',
+});
 
 // routes
 app.post('/signup', ({ body }, res) => {
@@ -54,13 +59,24 @@ app.post('/signin', ({ body }, res) => {
       sub: user.email,
       username: user.username,
     },
-    'mysupersecretkey',
+    'supersecretkey',
     { expiresIn: '3 hours' },
   );
 
   res.status(200).send({
     access_token: token,
   });
+});
+
+app.get('/events', jwtCheck, (req, res) => {
+  res.status(200).send([
+    {
+      name: 'Soirée qui tue',
+    },
+    {
+      name: 'Soirée des familles',
+    },
+  ]);
 });
 
 app.get('*', (req, res) => {
